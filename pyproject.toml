@@ -11,6 +11,8 @@ django = "^5.1.2"
 python-dotenv = "^1.0.1"
 psycopg = "^3.2.3"
 psycopg2 = "^2.9.10"
+pymongo = "^4.10.1"
+python-dateutil = "^2.9.0.post0"
 
 
 [build-system]

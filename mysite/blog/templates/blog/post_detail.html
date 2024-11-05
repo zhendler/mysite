@@ -9,7 +9,11 @@
 <body>
     <div class="container mt-5">
         <h1>{{ post.title }}</h1>
-        <h6 class="text-muted">Category: {{ post.category.name }}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">Tags:
+             {% for tag in post.tags.all %}
+                {{ tag.name }}{% if not forloop.last %}, {% endif %}
+             {% endfor %}
+        </h6>
         <p>{{ post.content }}</p>
         <p class="text-muted">Published on: {{ post.added_at }}</p>
         {% if user == post.author %}
