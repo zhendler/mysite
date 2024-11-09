@@ -16,7 +16,7 @@
         </h6>
         <p>{{ post.content }}</p>
         <p class="text-muted">Published on: {{ post.added_at }}</p>
-        {% if user == post.author %}
+        {% if user == post.author.user %}
             <a href="{% url 'post_update' post.id %}" class="btn btn-primary">Edit Post</a>
         {% endif %}
         <a href="{% url 'post_list' %}" class="btn btn-secondary">Back to Posts</a>

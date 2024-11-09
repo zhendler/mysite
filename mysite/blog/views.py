@@ -8,13 +8,18 @@ from django.views import View
 from django.views.generic import DetailView, ListView, CreateView, UpdateView
 
 from .forms import PostForm
-from .models import Post
+from .models import Post, Author, Tag
+
 
 class PostListView(ListView):
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
+    paginate_by = 10
     ordering = ['-added_at']
+
+    def get_queryset(self):
+        return Post.objects.all().order_by('-added_at')
 
 class PostDetailView(DetailView, LoginRequiredMixin):
     model = Post
@@ -28,7 +33,10 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('post_list')
 
     def form_valid(self, form):
-        form.instance.author = self.request.user
+        user = self.request.user  # Отримуємо поточного користувача
+        author, created = Author.objects.get_or_create(
+            user=user)  # Якщо автор існує, використовуємо його, інакше створюємо
+        form.instance.author = author  # Призначаємо автора посту
         return super().form_valid(form)
 
 
@@ -40,7 +48,44 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return queryset.filter(author=self.request.user)
+        return queryset.filter(author__user=self.request.user)
+
+
+class AuthorPostsListView(ListView):
+    model = Post
+    template_name = 'blog/author_posts.html'
+    context_object_name = 'posts'
+    ordering = ['-added_at']
+
+    def get_queryset(self):
+        author_id = self.kwargs['author_id']
+        return Post.objects.filter(author__id=author_id).order_by('-added_at')
+
+class TagsPostsListView(ListView):
+    model = Post
+    template_name = 'blog/tags_posts.html'
+    context_object_name = 'posts'
+    ordering = ['-added_at']
+
+    def get_queryset(self):
+        tag_name = self.kwargs['tag_name']
+        # Отримуємо пости з конкретним тегом за його ім'ям
+        return Post.objects.filter(tags__name=tag_name).order_by('-added_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_name = self.kwargs['tag_name']
+        try:
+            context['tag'] = Tag.objects.get(name=tag_name)
+        except Tag.DoesNotExist:
+            context['tag'] = None
+        return context
+
+
+
+
+
+
 
 class LoginView(View):
     def get(self, request):
@@ -55,7 +100,8 @@ class LoginView(View):
             return redirect('post_list')  # Перенаправлення на головну сторінку
         else:
             # Тут можна обробити помилку
-            return render(request, 'blog/login.html', {'error': 'Неправильний логін або пароль'})
+            return render(request, 'blog/login.html',
+                          {'error': 'Неправильний логін або пароль'})
 
 class LogoutView(View):
     def post(self, request):
