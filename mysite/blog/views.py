@@ -129,7 +129,7 @@ def register(request):
         else:
             messages.error(request, 'Паролі не співпадають!')
 
-    return render(request, 'blog/register.html')
+    return render(request, 'registration/register.html')
 
 
 
